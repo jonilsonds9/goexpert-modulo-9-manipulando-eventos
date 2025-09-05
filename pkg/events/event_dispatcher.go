@@ -22,7 +22,6 @@ func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterf
 			}
 		}
 	}
-
 	ed.handlers[eventName] = append(ed.handlers[eventName], handler)
 	return nil
 }

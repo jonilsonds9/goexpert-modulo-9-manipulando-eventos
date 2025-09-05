@@ -52,7 +52,16 @@ func (suite *EventDispatcherTestSuite) SetupTest() {
 }
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register() {
-	assert.True(suite.T(), true)
+	err := suite.eventDIspatcher.Register(suite.event.GetName(), &suite.handler)
+	suite.Nil(err)
+	suite.Equal(1, len(suite.eventDIspatcher.handlers[suite.event.GetName()]))
+
+	err = suite.eventDIspatcher.Register(suite.event.GetName(), &suite.handler2)
+	suite.Nil(err)
+	suite.Equal(2, len(suite.eventDIspatcher.handlers[suite.event.GetName()]))
+
+	assert.Equal(suite.T(), &suite.handler, suite.eventDIspatcher.handlers[suite.event.GetName()][0])
+	assert.Equal(suite.T(), &suite.handler2, suite.eventDIspatcher.handlers[suite.event.GetName()][1])
 }
 
 func TestSuite(t *testing.T) {

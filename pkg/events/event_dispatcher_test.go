@@ -1,6 +1,7 @@
 package events
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -30,7 +31,7 @@ type TestEventHandler struct {
 	ID int
 }
 
-func (h *TestEventHandler) Handle(event EventInterface) {
+func (h *TestEventHandler) Handle(event EventInterface, wg *sync.WaitGroup) {
 }
 
 type EventDispatcherTestSuite struct {
@@ -47,8 +48,9 @@ type MockEventHandler struct {
 	mock.Mock
 }
 
-func (m *MockEventHandler) Handle(event EventInterface) {
+func (m *MockEventHandler) Handle(event EventInterface, wg *sync.WaitGroup) {
 	m.Called(event)
+	wg.Done()
 }
 
 func (suite *EventDispatcherTestSuite) SetupTest() {
@@ -119,10 +121,17 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch() {
 	eh := MockEventHandler{}
 	eh.On("Handle", &suite.event)
 
+	eh2 := MockEventHandler{}
+	eh2.On("Handle", &suite.event)
+
 	suite.eventDIspatcher.Register(suite.event.GetName(), &eh)
+	suite.eventDIspatcher.Register(suite.event.GetName(), &eh2)
+
 	suite.eventDIspatcher.Dispatch(&suite.event)
 	eh.AssertExpectations(suite.T())
+	eh2.AssertExpectations(suite.T())
 	eh.AssertNumberOfCalls(suite.T(), "Handle", 1)
+	eh2.AssertNumberOfCalls(suite.T(), "Handle", 1)
 }
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Remove() {
